@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from networkx import Graph
+from networkx import Graph, is_isomorphic
 from sqlalchemy import create_engine, text
 
 from data_setup import setup_data
