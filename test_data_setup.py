@@ -4,6 +4,8 @@ from sqlalchemy import create_engine, text
 
 from data_setup import setup_data
 
+from plotly_functions import basic_test
+
 class DataSetupTests(TestCase):
 
     def setUp(self):
@@ -21,3 +23,8 @@ class DataSetupTests(TestCase):
            with self.subTest():
                rs = conn.execute(text("SELECT * FROM table_b"))
                self.assertEqual(len(rs.all()), 2)
+
+
+class PlotlyFunctionsTests(TestCase):
+    def basic_test(self):
+        basic_test()
