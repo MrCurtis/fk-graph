@@ -12,7 +12,20 @@ class GetGraphTests(TestCase):
 
     def setUp(self):
         self.engine = create_engine("sqlite+pysqlite:///:memory:")
-        setup_data(self.engine)
+
+    def test_can_build_with_single_table_no_relation(self):
+        self._create_single_table_no_relations(self.engine)
+        node_1 = Node(table="table_a", primary_key=1)
+        expected_graph = Graph()
+        expected_graph.add_node(node_1)
+
+        graph = get_graph(self.engine, "table_a", 1)
+
+        with self.subTest():
+            self.assertCountEqual(graph.nodes, expected_graph.nodes)
+
+        with self.subTest():
+            self.assertTrue(is_isomorphic(graph, expected_graph))
 
     def test_can_build_from_reverse_foreign_key_relations(self):
         self._create_db_with_reverse_foreign_key_relations(self.engine)
@@ -30,6 +43,23 @@ class GetGraphTests(TestCase):
 
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
+
+    def _create_single_table_no_relations(self, engine):
+        metadata_object = MetaData()
+        table_a = Table(
+            "table_a",
+            metadata_object,
+            Column("id", Integer, primary_key=True),
+        )
+        metadata_object.create_all(engine)
+        with engine.connect() as conn:
+            conn.execute(
+                insert(table_a),
+                [
+                    {"id": 1},
+                ]
+            )
+            conn.commit()
 
     def _create_db_with_reverse_foreign_key_relations(self, engine):
         metadata_object = MetaData()
