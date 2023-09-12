@@ -1,7 +1,6 @@
 from sqlalchemy import Column, create_engine, ForeignKey, insert, Integer, MetaData, Table
-engine = create_engine("sqlite+pysqlite:///:memory:", echo=True)
 
-def setup_data(engine=engine):
+def setup_data(engine):
     metadata_object = MetaData()
     table_a = Table(
         "table_a",
