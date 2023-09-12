@@ -190,7 +190,7 @@ class GetGraphTests(TestCase):
             "table_a",
             metadata_object,
             Column("id", Integer, primary_key=True),
-            Column("c_id", ForeignKey("table_a.id"), nullable=False),
+            Column("c_id", ForeignKey("table_c.id"), nullable=False),
         )
         table_b = Table(
             "table_b",
