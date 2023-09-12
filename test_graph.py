@@ -11,7 +11,7 @@ from graph import get_graph, Node
 class GetGraphTests(TestCase):
 
     def setUp(self):
-        self.engine = create_engine("sqlite+pysqlite:///:memory:", echo=True)
+        self.engine = create_engine("sqlite+pysqlite:///:memory:")
         setup_data(self.engine)
 
     def test_can_build_from_reverse_foreign_key_relations(self):
