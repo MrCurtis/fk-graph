@@ -14,7 +14,7 @@ class GetGraphTests(TestCase):
         self.engine = create_engine("sqlite+pysqlite:///:memory:", echo=True)
         setup_data(self.engine)
 
-    def test_fail(self):
+    def test_can_build_from_reverse_foreign_key_relations(self):
         node_1 = Node(table="table_a", primary_key=1)
         node_2 = Node(table="table_b", primary_key=1)
         node_3 = Node(table="table_b", primary_key=2)
