@@ -34,7 +34,7 @@ class Node:
         return self.str()
 
 
-def get_graph(engine, table, primary_key):
+def get_graph(engine, table, primary_key) -> Graph:
     """Construct the graph for a specified data-point
 
     Args:
