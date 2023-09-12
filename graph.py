@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 import typing
 
-@dataclass
+@dataclass(frozen=True)
 class Node:
     table:str
     primary_key:typing.Any
