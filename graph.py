@@ -78,7 +78,6 @@ def _add_related_rows_to_graph(row, row_node, graph):
                 )
                 if related_row_node in graph.nodes():
                     continue
-                graph.add_node(related_row_node)
                 graph.add_edge(row_node, related_row_node)
                 _add_related_rows_to_graph(related_row, related_row_node, graph)
         except TypeError:
@@ -90,7 +89,6 @@ def _add_related_rows_to_graph(row, row_node, graph):
             )
             if related_row_node in graph.nodes():
                 continue
-            graph.add_node(related_row_node)
             graph.add_edge(row_node, related_row_node)
             _add_related_rows_to_graph(related_row, related_row_node, graph)
 
