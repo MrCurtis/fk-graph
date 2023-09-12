@@ -38,12 +38,14 @@ def get_info_dicts(nodes_df: pd.DataFrame) -> dict[str, dict[str, Any]]:
 
 def textify_additional_data(
         data: dict[str, dict[str, Any]],
+        max_length:int=25,
 ) -> dict[str, str]:
     """Take data in form of {nodeID:{dataKey:dataValue}} and return text string for annotation."""
 
     out = {}
 
     for nodeid, values in data.items():
+        #todo truncate long strings
         s = '\n'.join([f"{k}:{v}" for k, v in values.items()])
         out[nodeid]  = s
 
