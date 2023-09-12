@@ -58,20 +58,42 @@ def get_graph(engine, table, primary_key) -> Graph:
             primary_key=_get_primary_key_from_row(row),
         )
         graph.add_node(row_node)
-        relationships = row.__mapper__.relationships
-        for relationship in relationships:
-            # This is a bit hacky - but they don't call it a hackathon for nothing.
-            relationship_name = str(relationship).split(".")[-1]
-            related_rows = getattr(row, relationship_name)
+        _add_related_rows_to_graph(row, row_node, graph)
+
+    return graph
+
+
+def _add_related_rows_to_graph(row, row_node, graph):
+    relationships = row.__mapper__.relationships
+    for relationship in relationships:
+        # This is a bit hacky - but they don't call it a hackathon for nothing.
+        relationship_name = str(relationship).split(".")[-1]
+        related_rows = getattr(row, relationship_name)
+        try:
+            # This path for reverse foreign keys
             for related_row in related_rows:
                 related_row_node = Node(
                     table=_get_table_name_from_row(related_row),
                     primary_key=_get_primary_key_from_row(related_row),
                 )
+                if related_row_node in graph.nodes():
+                    continue
                 graph.add_node(related_row_node)
                 graph.add_edge(row_node, related_row_node)
+                _add_related_rows_to_graph(related_row, related_row_node, graph)
+        except TypeError:
+            # This path for foreign keys.
+            related_row = related_rows
+            related_row_node = Node(
+                table=_get_table_name_from_row(related_row),
+                primary_key=_get_primary_key_from_row(related_row),
+            )
+            if related_row_node in graph.nodes():
+                continue
+            graph.add_node(related_row_node)
+            graph.add_edge(row_node, related_row_node)
+            _add_related_rows_to_graph(related_row, related_row_node, graph)
 
-    return graph
 
 
 def _get_table_name_from_row(row):
