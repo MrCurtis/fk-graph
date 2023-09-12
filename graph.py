@@ -17,6 +17,9 @@ class Node:
     def str(self):
         return f"{self.table}.{str(self.primary_key)}"
 
+    def __repr__(self):
+        return self.str()
+
 #Node = namedtuple("Node", ["table", "primary_key"])
 
 
