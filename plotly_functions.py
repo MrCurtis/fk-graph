@@ -213,9 +213,17 @@ def basic_graph(data=(('A', 'B'), ('B', 'C'), ('C', 'A'))) -> nx.Graph:
 
 
 def basic_test():
-    G = basic_graph()
+    #G = basic_graph()
+    from data_setup import setup_data
+    from graph import get_graph
+    from sqlalchemy import create_engine
+    engine = create_engine("sqlite+pysqlite:///:memory:", echo=False)
+    setup_data(engine)
+    G = get_graph(engine, 'table_a', 1)
+
 
     f = plot_v2(G)
+    print(f.to_json()[:50], '... etc.')
     f.show()
 
 
