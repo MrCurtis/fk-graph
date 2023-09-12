@@ -1,5 +1,4 @@
 import networkx as nx
-import dash
 
 import pandas as pd
 import numpy as np
@@ -7,6 +6,8 @@ import numpy as np
 from typing import Tuple, Any, Union, Collection, Mapping
 
 from plotly import graph_objects as go
+
+from graph import Node
 
 def get_edges_df(graph:nx.Graph, node_xy:pd.DataFrame):
     edge_x = []
@@ -25,10 +26,14 @@ def get_edges_df(graph:nx.Graph, node_xy:pd.DataFrame):
 
 
 def get_nodes_df(graph:nx.Graph) -> pd.DataFrame:
-    return pd.DataFrame([
+    df = pd.DataFrame([
         {'Node':node, 'X':x, 'Y':y}
         for (node, (x, y)) in nx.spring_layout(graph).items()
     ]).set_index('Node')
+
+    #df.index = [str(i) for i in df.index]
+
+    return df
 
 
 def get_info_dicts(nodes_df: pd.DataFrame) -> dict[str, dict[str, Any]]:
@@ -52,6 +57,14 @@ def textify_additional_data(
     return out
 
 
+
+def process_graph(graph:nx.Graph) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Turn graph obj into DF used by plotting function"""
+    nodes = get_nodes_df(graph)
+    edges = get_edges_df(graph, nodes)
+    
+    return nodes, edges
+
 def plot_v1(
         nodes:pd.DataFrame,
         edges:pd.DataFrame
@@ -70,7 +83,7 @@ def plot_v1(
     nodes_go = go.Scatter(
         x=nodes.X,
         y=nodes.Y,
-        ids=nodes.index,
+        ids=nodes.index.map(str),
         mode='markers',
         marker=node_fmt,
     )
@@ -99,8 +112,22 @@ def plot_v1(
     )
 
     for k, row in nodes.iterrows():
-        fig.add_annotation(text=row.AnnotationText, yanchor='bottom', bgcolor='lightgrey', x=row.X, y=row.Y, ax=row.X,
-                           ay=row.Y)
+        annotation = f"<b>{k}</b>"
+
+        if 'AnnotationText' in row.index:
+            more = row.AnnotationText
+            annotation = f"<br>{more}"
+
+        fig.add_annotation(
+            text=annotation,
+            yanchor='bottom',
+            bgcolor='lightgrey',
+            x=row.X,
+            y=row.Y,
+            ax=row.X,
+            ay=row.Y
+        )
+
     return fig
 
 
@@ -122,6 +149,8 @@ def basic_test():
 
     f = plot_v1(nodes_df, edges_xy)
     f.show()
+
+
 
 
 if __name__ == '__main__':

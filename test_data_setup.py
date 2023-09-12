@@ -26,5 +26,5 @@ class DataSetupTests(TestCase):
 
 
 class PlotlyFunctionsTests(TestCase):
-    def basic_test(self):
+    def test_basic(self):
         basic_test()
