@@ -15,7 +15,7 @@ class GetGraphTests(TestCase):
         setup_data(self.engine)
 
     def test_can_build_from_reverse_foreign_key_relations(self):
-        self._create_db_with_foreign_key_relations(self.engine)
+        self._create_db_with_reverse_foreign_key_relations(self.engine)
         node_1 = Node(table="table_a", primary_key=1)
         node_2 = Node(table="table_b", primary_key=1)
         node_3 = Node(table="table_b", primary_key=2)
@@ -31,7 +31,7 @@ class GetGraphTests(TestCase):
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
 
-    def _create_db_with_foreign_key_relations(self, engine):
+    def _create_db_with_reverse_foreign_key_relations(self, engine):
         metadata_object = MetaData()
         table_a = Table(
             "table_a",
