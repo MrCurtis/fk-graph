@@ -5,8 +5,19 @@ from sqlalchemy import inspect, MetaData
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 
+from dataclasses import dataclass
 
-Node = namedtuple("Node", ["table", "primary_key"])
+import typing
+
+@dataclass
+class Node:
+    table:str
+    primary_key:typing.Any
+
+    def str(self):
+        return f"{self.table}.{str(self.primary_key)}"
+
+#Node = namedtuple("Node", ["table", "primary_key"])
 
 
 def get_graph(engine, table, primary_key):
