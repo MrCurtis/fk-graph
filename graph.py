@@ -14,13 +14,24 @@ class Node:
     table:str
     primary_key:typing.Any
 
+    data:dict[str, typing.Any] = None
+
     def str(self):
+        """table.primary_key"""
         return f"{self.table}.{str(self.primary_key)}"
+
+    def str_data(self, max_length=25):
+        """Convert addtional data to string for plotly, using <br> for newlines."""
+        s = '<br>'.join([f"{k}:{str(v)[:max_length]}"
+                         for k, v in self.data.items()])
+        return s
+
 
     def __repr__(self):
         return self.str()
 
-#Node = namedtuple("Node", ["table", "primary_key"])
+    def __str__(self):
+        return self.str()
 
 
 def get_graph(engine, table, primary_key):
