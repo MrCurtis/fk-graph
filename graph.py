@@ -14,16 +14,20 @@ class Node:
     table:str
     primary_key:typing.Any
 
-    data:dict[str, typing.Any] = None
+    data:tuple[tuple[typing.Any, typing.Any]] = ()
 
     def str(self):
         """table.primary_key"""
         return f"{self.table}.{str(self.primary_key)}"
 
-    def str_data(self, max_length=25):
+    def str_data(self, max_row_length=25, max_rows=7):
         """Convert addtional data to string for plotly, using <br> for newlines."""
-        s = '<br>'.join([f"{k}:{str(v)[:max_length]}"
-                         for k, v in self.data.items()])
+        if self.data is None:
+            return "<br>(no data)"
+        s = '<br>'.join([f"{k}:{str(v)[:max_row_length]}"
+                         for k, v in self.data[:max_rows]])
+        if len(self.data) > max_rows:
+            s += f"<br>...{len(self.data)-max_rows} rows omitted."
         return s
 
 
@@ -56,6 +60,7 @@ def get_graph(engine, table, primary_key) -> Graph:
         row_node = Node(
             table=_get_table_name_from_row(row),
             primary_key=_get_primary_key_from_row(row),
+            data=_get_data(row),
         )
         graph.add_node(row_node)
         _add_related_rows_to_graph(row, row_node, graph)
@@ -76,6 +81,7 @@ def _add_related_rows_to_graph(row, row_node, graph):
                 related_node = Node(
                     table=_get_table_name_from_row(related_row),
                     primary_key=_get_primary_key_from_row(related_row),
+                    data=_get_data(related_row),
                 )
                 related.append((related_row, related_node))
         except TypeError:
@@ -84,6 +90,7 @@ def _add_related_rows_to_graph(row, row_node, graph):
             related_node = Node(
                 table=_get_table_name_from_row(related_row),
                 primary_key=_get_primary_key_from_row(related_row),
+                data=_get_data(related_row),
             )
             related.append((related_row, related_node))
     unvisited = [
@@ -96,8 +103,6 @@ def _add_related_rows_to_graph(row, row_node, graph):
         _add_related_rows_to_graph(unvisited_row, unvisited_node, graph)
 
 
-
-
 def _get_table_name_from_row(row):
     return row.__table__.name
 
@@ -107,3 +112,9 @@ def _get_primary_key_from_row(row):
     if len(primary_key_values) != 1:
         raise NotImplementedError("We just consider cases with single column pk for the time being")
     return primary_key_values[0]
+
+def _get_data(row):
+    return tuple( 
+            (column.name, getattr(row, column.name))
+            for column in row.__table__.columns
+        )
