@@ -78,18 +78,6 @@ def color_cycler():
     i = itertools.cycle(px.colors.qualitative.Pastel1)
     yield next(i)
 
-def empty_figure(width=None, height=None):
-
-    return go.Figure(
-        layout=dict(
-            width=width,
-            height=height,
-            clickmode='event+select',
-            dragmode='select',
-        )
-    )
-
-
 class TableColors:
     def __init__(
             self,
@@ -110,6 +98,32 @@ class TableColors:
 
     def __getitem__(self, node):
         return self.get_color(node)
+
+def add_annotations(
+        fig, nodes, layout, show_data, table_colors,
+        max_rows=10, max_row_len=20):
+
+    fig.layout.annotations = []
+    for node in nodes:
+        node:Node
+        annotation = f"<b>{node.str()}</b>"
+        if show_data:
+            if node.data is not None:
+                annotation += '<br>' + node.str_data(
+                    max_rows=max_rows,
+                    max_row_length=max_row_len
+                )
+
+        fig.add_annotation(
+            text=annotation,
+            yanchor='bottom',
+            bgcolor=table_colors[node],
+            x=layout[node][0],
+            y=layout[node][1],
+            ax=layout[node][0],
+            ay=layout[node][1],
+        )
+    return fig
 
 BLOCK = dict(display='block')
 INLINEBLK = dict(display='inline-block')
@@ -165,29 +179,9 @@ def run_app(db_graph:nx.Graph, host=os.getenv("HOST", "127.0.0.1")):
         #State('dash-graph', 'figure'),
     )
     def show_hide_annotations(show_data, max_rows, max_row_len):
+        figure = add_annotations(fig, nodes, layout, show_data, table_colors, max_rows, max_row_len)
 
-        fig.layout.annotations = []
-        for node in nodes:
-            node:Node
-            annotation = f"<b>{node.str()}</b>"
-            if show_data:
-                if node.data is not None:
-                    annotation += '<br>' + node.str_data(
-                        max_rows=max_rows,
-                        max_row_length=max_row_len
-                    )
-
-            fig.add_annotation(
-                text=annotation,
-                yanchor='bottom',
-                bgcolor=table_colors[node],
-                x=layout[node][0],
-                y=layout[node][1],
-                ax=layout[node][0],
-                ay=layout[node][1],
-            )
-
-        return fig
+        return figure
 
     # control for figure height, width
     height_input, width_input = [
@@ -273,21 +267,9 @@ def plot_v2(layout, nodes, node_xy, edge_xy):
     fig.add_trace(edges_go)
     fig.add_trace(nodes_go)
 
-    for node in nodes:
-        annotation = f"<b>{node.str()}</b>"
-
-        if node.data is not None:
-            annotation += '<br>' + node.str_data()
-
-        fig.add_annotation(
-            text=annotation,
-            yanchor='bottom',
-            bgcolor='lightgrey',
-            x=layout[node][0],
-            y=layout[node][1],
-            ax=layout[node][0],
-            ay=layout[node][1],
-        )
+    fig = add_annotations(
+        fig, nodes, layout, True, TableColors(nodes),
+    )
 
     fig.update_layout(
         xaxis=dict(
@@ -339,3 +321,4 @@ def dash_app():
 
 if __name__ == '__main__':
     dash_app()
+    pass
