@@ -4,3 +4,4 @@ dash==2.13
 pandas==2.1
 networkx==3.1
 plotly==5.16.1
+flask
