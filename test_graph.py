@@ -21,7 +21,7 @@ class GetGraphTests(TestCase):
         graph = get_graph(self.engine, "table_a", 1)
 
         with self.subTest():
-            self.assertCountEqual(graph.nodes, expected_graph.nodes)
+            self.assertCountEqual(_to_table_primary_keys(graph.nodes), _to_table_primary_keys(expected_graph.nodes))
 
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
@@ -38,7 +38,7 @@ class GetGraphTests(TestCase):
         graph = get_graph(self.engine, "table_a", 1)
 
         with self.subTest():
-            self.assertCountEqual(graph.nodes, expected_graph.nodes)
+            self.assertCountEqual(_to_table_primary_keys(graph.nodes), _to_table_primary_keys(expected_graph.nodes))
 
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
@@ -55,7 +55,7 @@ class GetGraphTests(TestCase):
         graph = get_graph(self.engine, "table_c", 1)
 
         with self.subTest():
-            self.assertCountEqual(graph.nodes, expected_graph.nodes)
+            self.assertCountEqual(_to_table_primary_keys(graph.nodes), _to_table_primary_keys(expected_graph.nodes))
 
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
@@ -72,7 +72,7 @@ class GetGraphTests(TestCase):
         graph = get_graph(self.engine, "table_a", 1)
 
         with self.subTest():
-            self.assertCountEqual(graph.nodes, expected_graph.nodes)
+            self.assertCountEqual(_to_table_primary_keys(graph.nodes), _to_table_primary_keys(expected_graph.nodes))
 
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
@@ -90,7 +90,7 @@ class GetGraphTests(TestCase):
         graph = get_graph(self.engine, "table_a", 1)
 
         with self.subTest():
-            self.assertCountEqual(graph.nodes, expected_graph.nodes)
+            self.assertCountEqual(_to_table_primary_keys(graph.nodes), _to_table_primary_keys(expected_graph.nodes))
 
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
@@ -274,3 +274,9 @@ class GetGraphTests(TestCase):
                 ]
             )
             conn.commit()
+
+
+def _to_table_primary_keys(nodes):
+    return [
+        (n.table, n.primary_key) for n in nodes
+    ]
