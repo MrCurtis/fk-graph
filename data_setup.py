@@ -1,4 +1,4 @@
-from sqlalchemy import Column, create_engine, ForeignKey, insert, Integer, MetaData, Table
+from sqlalchemy import Column, ForeignKey, insert, Integer, MetaData, Table
 
 def setup_data(engine):
     metadata_object = MetaData()
@@ -6,6 +6,9 @@ def setup_data(engine):
         "table_a",
         metadata_object,
         Column("id", Integer, primary_key=True),
+        Column('year', Integer),
+        Column('size', Integer),
+
     )
     table_b = Table(
         "table_b",
@@ -18,7 +21,7 @@ def setup_data(engine):
         conn.execute(
             insert(table_a),
             [
-                {"id": 1},
+                {"id": 1, 'year': 2023,'size': 30}
             ]
         )
         conn.execute(
