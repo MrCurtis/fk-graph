@@ -1,15 +1,23 @@
 import dataclasses
+import os
+
+import itertools
 
 import networkx as nx
 
 import pandas as pd
 import numpy as np
 
-from typing import Tuple, Any, Union, Collection, Mapping, NamedTuple, NewType
+from typing import Tuple, Any, Union, Collection, Mapping, NamedTuple, NewType, TypedDict
 
+import plotly.express as px
 from plotly import graph_objects as go
 
 from graph import Node
+
+import flask
+
+
 
 # @dataclasses.dataclass
 # class NodeCollection:
@@ -21,6 +29,12 @@ class XYValues(NamedTuple):
     y: list[float | None]
 
 NodeLayout = NewType('NodeLayout', dict[Node, tuple[float, float]])
+
+
+class DataDict(TypedDict):
+    layout: NodeLayout = None
+    node_xy: XYValues = None
+    edge_xy: XYValues = None
 
 def get_edge_xy(
         graph:nx.Graph,
@@ -55,28 +69,182 @@ def get_info_dicts(nodes_df: pd.DataFrame) -> dict[str, dict[str, Any]]:
     """Dicts, keyed by index (node) then column."""
     return nodes_df.drop(['X', 'Y', 'AnnotationText'], axis=1, errors='ignore').to_dict('index')
 
+from dash import dash, dcc, html, callback
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
+from dash.html import Div
 
-# def process_graph(graph:nx.Graph) -> Tuple[NodeLayout, XYValues, XYValues]:
-#     """Turn graph obj into DF used by plotting function"""
-#
-#
-#     return layout, node_xy, edge_xy
+def color_cycler():
+    i = itertools.cycle(px.colors.qualitative.Pastel1)
+    yield next(i)
+
+def empty_figure(width=None, height=None):
+
+    return go.Figure(
+        layout=dict(
+            width=width,
+            height=height,
+            clickmode='event+select',
+            dragmode='select',
+        )
+    )
 
 
-def plot_v2(
-        graph
-):
-    """With graph object of table/row relationships,
-    plot those as a network graph"""
+class TableColors:
+    def __init__(
+            self,
+            nodes:list[Node],
+            palette:list[str] = px.colors.qualitative.Pastel1
+    ):
+        tables = set([n.table for n in nodes])
 
-    #todo show hide additional data
-    #todo colour by table
-    #todo hide tables
+        self.table_colors = dict(zip(
+            tables,
+            itertools.cycle(palette)
+        ))
 
+    def get_color(self, node:Node):
+        return self.table_colors[
+            node.table
+        ]
+
+    def __getitem__(self, node):
+        return self.get_color(node)
+
+BLOCK = dict(display='block')
+INLINEBLK = dict(display='inline-block')
+def run_app(db_graph:nx.Graph, host=os.getenv("HOST", "127.0.0.1")):
+
+    #Interactivities:
+    # - hide specific tables
+    # - alter node max rows
+
+
+    width, height = 800, 900
+    default_input_values = {'height':height, 'width':width, 'max rows':10,
+                            'max row length':25}
+
+    layout, nodes, node_xy, edge_xy = process_graph(db_graph)
+
+    table_colors = TableColors(
+        nodes
+    )
+
+    fig = plot_v2(layout, nodes, node_xy, edge_xy)
+
+    fig.update_layout(
+        width=width,
+        height=height,
+    )
+
+    dash_graph = dcc.Graph(
+        id=f'dash-graph',
+        config={},
+        figure=fig,
+    )
+
+
+    # **CONTROLS**
+    max_len_row, max_rows = [
+        html.Div([
+            html.Label(f"{hw}:  ", htmlFor=f'{hw}-input', style=dict(display='block')),
+            dcc.Input(id=f'{hw}-input', value=default_input_values[hw], type='number'),
+
+        ], style=dict(display='inline-block'))
+        for hw in ('max rows', 'max row length')
+    ]
+
+
+    # show hide Node.data information
+    show_data_button = dcc.Checklist(['Show table values'], ['Show table values'], id='show-data')
+    @callback(
+        Output('dash-graph', 'figure'),
+        Input('show-data', 'value'),
+        Input('max rows-input', 'value'),
+        Input('max row length-input', 'value'),
+        #State('dash-graph', 'figure'),
+    )
+    def show_hide_annotations(show_data, max_rows, max_row_len):
+
+        fig.layout.annotations = []
+        for node in nodes:
+            node:Node
+            annotation = f"<b>{node.str()}</b>"
+            if show_data:
+                if node.data is not None:
+                    annotation += '<br>' + node.str_data(
+                        max_rows=max_rows,
+                        max_row_length=max_row_len
+                    )
+
+            fig.add_annotation(
+                text=annotation,
+                yanchor='bottom',
+                bgcolor=table_colors[node],
+                x=layout[node][0],
+                y=layout[node][1],
+                ax=layout[node][0],
+                ay=layout[node][1],
+            )
+
+        return fig
+
+    # control for figure height, width
+    height_input, width_input = [
+        html.Div([
+            html.Label(f"{hw}:  ", htmlFor=f'{hw}-input', style=dict(display='block')),
+            dcc.Input(id=f'{hw}-input', value=default_input_values[hw], type='number'),
+
+        ], style=dict(display='inline-block'))
+        for hw in ('width', 'height')
+    ]
+
+    @callback(
+        Output('dash-graph', 'figure', allow_duplicate=True, ),
+        Input('height-input', 'value'),
+        Input('width-input', 'value'),
+        prevent_initial_call=True
+    )
+    def update_height_width(h, w):
+        if (h < 10) or (w < 10):
+            raise PreventUpdate
+        fig.update_layout(
+            height=h,
+            width=w,
+        )
+        return fig
+
+    server = flask.Flask(__name__)
+
+    app = dash.Dash(
+        'relational-graph',
+        server=server,
+        prevent_initial_callbacks='initial_duplicate',
+
+    )
+
+    app.layout = Div([
+        html.Div([
+            show_data_button,
+            Div([height_input, width_input], style=BLOCK),
+            Div([max_rows, max_len_row], style=BLOCK),
+        ], style=INLINEBLK),
+        dash_graph
+    ])
+
+    app.run(host=host, port=8050, debug=True)
+
+def process_graph(graph) -> (NodeLayout, list[Node], XYValues, XYValues):
     layout = NodeLayout(nx.spring_layout(graph))
     nodes = list(layout.keys())
     node_xy = get_nodes_xy(layout)
     edge_xy = get_edge_xy(graph, layout)
+    return layout, nodes, node_xy, edge_xy
+
+
+def plot_v2(layout, nodes, node_xy, edge_xy):
+    """With graph object of table/row relationships,
+    plot those as a network graph"""
 
     node_fmt = dict(
         size=2,
@@ -105,6 +273,22 @@ def plot_v2(
     fig.add_trace(edges_go)
     fig.add_trace(nodes_go)
 
+    for node in nodes:
+        annotation = f"<b>{node.str()}</b>"
+
+        if node.data is not None:
+            annotation += '<br>' + node.str_data()
+
+        fig.add_annotation(
+            text=annotation,
+            yanchor='bottom',
+            bgcolor='lightgrey',
+            x=layout[node][0],
+            y=layout[node][1],
+            ax=layout[node][0],
+            ay=layout[node][1],
+        )
+
     fig.update_layout(
         xaxis=dict(
             showticklabels=False,
@@ -119,90 +303,7 @@ def plot_v2(
         showlegend=False,
     )
 
-    for node in nodes:
-        annotation = f"<b>{node.str()}</b>"
-
-        if node.data is not None:
-            annotation += '<br>'+node.str_data()
-
-        fig.add_annotation(
-            text=annotation,
-            yanchor='bottom',
-            bgcolor='lightgrey',
-            x=layout[node][0],
-            y=layout[node][1],
-            ax=layout[node][0],
-            ay=layout[node][1],
-        )
-
     return fig
-
-# def plot_v1(
-#         nodes:pd.DataFrame,
-#         edges:pd.DataFrame
-# ):
-#     """Plot some simple data."""
-#
-#     node_fmt = dict(
-#         size=2,
-#         color='white',
-#         line=dict(
-#             color='lightslategrey',
-#             width=2,
-#         )
-#     )
-#
-#     print(nodes.x, nodes.y)
-#
-#     nodes_go = go.Scatter(
-#         x=nodes.X,
-#         y=nodes.Y,
-#         ids=nodes.index.map(str),
-#         mode='markers',
-#         marker=node_fmt,
-#     )
-#
-#     edges_go = go.Scatter(
-#         x=edges.X,
-#         y=edges.Y,
-#         mode='lines'
-#     )
-#
-#     fig = go.Figure()
-#     fig.add_trace(edges_go)
-#     fig.add_trace(nodes_go)
-#
-#     fig.update_layout(
-#         xaxis=dict(
-#             showticklabels=False,
-#             showgrid=False,
-#             zeroline=False
-#         ),
-#         yaxis=dict(
-#             showticklabels=False,
-#             showgrid=False,
-#             zeroline=False
-#         )
-#     )
-#
-#     for k, row in nodes.iterrows():
-#         annotation = f"<b>{k}</b>"
-#
-#         if 'AnnotationText' in row.index:
-#             more = row.AnnotationText
-#             annotation = f"<br>{more}"
-#
-#         fig.add_annotation(
-#             text=annotation,
-#             yanchor='bottom',
-#             bgcolor='lightgrey',
-#             x=row.X,
-#             y=row.Y,
-#             ax=row.X,
-#             ay=row.Y
-#         )
-#
-#     return fig
 
 
 def basic_graph(data=(('A', 'B'), ('B', 'C'), ('C', 'A'))) -> nx.Graph:
@@ -212,22 +313,29 @@ def basic_graph(data=(('A', 'B'), ('B', 'C'), ('C', 'A'))) -> nx.Graph:
     return G
 
 
-def basic_test():
-    #G = basic_graph()
+def _get_test_graph() -> nx.Graph:
     from data_setup import setup_data
     from graph import get_graph
     from sqlalchemy import create_engine
     engine = create_engine("sqlite+pysqlite:///:memory:", echo=False)
     setup_data(engine)
     G = get_graph(engine, 'table_a', 1)
+    return G
 
 
-    f = plot_v2(G)
+def basic_test():
+    G = _get_test_graph()
+    args = process_graph(G)
+
+    f = plot_v2(*args)
     print(f.to_json()[:50], '... etc.')
     f.show()
 
 
+def dash_app():
+    G = _get_test_graph()
+    run_app(G, host='10.0.0.8')
 
 
 if __name__ == '__main__':
-    basic_test()
+    dash_app()
