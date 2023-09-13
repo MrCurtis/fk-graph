@@ -15,7 +15,7 @@ from graph import Node
 
 import flask
 
-from icecream import ic
+
 
 # @dataclasses.dataclass
 # class NodeCollection:
@@ -186,7 +186,6 @@ def process_graph(graph) -> (NodeLayout, list[Node], XYValues, XYValues):
     node_xy = get_nodes_xy(layout)
     edge_xy = get_edge_xy(graph, layout)
     return layout, nodes, node_xy, edge_xy
-
 
 
 
