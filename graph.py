@@ -14,7 +14,7 @@ class Node:
     table:str
     primary_key:typing.Any
 
-    data:tuple[(str, typing.Any)] = ()
+    data:tuple[tuple[typing.Any, typing.Any]] = ()
 
     def str(self):
         """table.primary_key"""
