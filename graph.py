@@ -20,10 +20,14 @@ class Node:
         """table.primary_key"""
         return f"{self.table}.{str(self.primary_key)}"
 
-    def str_data(self, max_length=25):
+    def str_data(self, max_row_length=25, max_rows=7):
         """Convert addtional data to string for plotly, using <br> for newlines."""
-        s = '<br>'.join([f"{k}:{str(v)[:max_length]}"
-                         for k, v in self.data])
+        if self.data is None:
+            return "<br>(no data)"
+        s = '<br>'.join([f"{k}:{str(v)[:max_row_length]}"
+                         for k, v in self.data[:max_rows]])
+        if len(self.data) > max_rows:
+            s += f"<br>...{len(self.data)-max_rows} rows omitted."
         return s
 
 
