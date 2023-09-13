@@ -14,7 +14,7 @@ class Node:
     table:str
     primary_key:typing.Any
 
-    data:dict[str, typing.Any] = None
+    data:tuple[(str, typing.Any)] = ()
 
     def str(self):
         """table.primary_key"""
@@ -23,7 +23,7 @@ class Node:
     def str_data(self, max_length=25):
         """Convert addtional data to string for plotly, using <br> for newlines."""
         s = '<br>'.join([f"{k}:{str(v)[:max_length]}"
-                         for k, v in self.data.items()])
+                         for k, v in self.data])
         return s
 
 
