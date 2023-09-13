@@ -1,7 +1,6 @@
 from unittest import TestCase
-
 from networkx import Graph, is_isomorphic
-from sqlalchemy import Column, create_engine, ForeignKey, insert, Integer, MetaData, Table
+from sqlalchemy import Column, create_engine, ForeignKey, insert, Integer, MetaData, String, Table
 
 from data_setup import setup_data
 
@@ -95,6 +94,25 @@ class GetGraphTests(TestCase):
 
         with self.subTest():
             self.assertTrue(is_isomorphic(graph, expected_graph))
+
+    def test_adds_data_attribute(self):
+        self._create_data_with_non_primary_key_non_foreign_kay_fields(self.engine)
+        expected_data = (
+            ("id", 1),
+            ("string_field", "some_text"),
+            ("integer_field", 123),
+            ("b_id", 1),
+        )
+
+        graph = get_graph(self.engine, "table_a", 1)
+
+        table_a_node = [
+            n for n in graph.nodes if n.table == "table_a" and n.primary_key == 1
+        ][0]
+
+        print(table_a_node.data)
+
+        self.assertCountEqual(table_a_node.data, expected_data)
 
     def _create_single_table_no_relations(self, engine):
         metadata_object = MetaData()
@@ -222,6 +240,37 @@ class GetGraphTests(TestCase):
                 insert(table_c),
                 [
                     {"id": 1, "b_id": 1},
+                ]
+            )
+            conn.commit()
+
+    def _create_data_with_non_primary_key_non_foreign_kay_fields(self, engine):
+        metadata_object = MetaData()
+        table_a = Table(
+            "table_a",
+            metadata_object,
+            Column("id", Integer, primary_key=True),
+            Column("b_id", ForeignKey("table_b.id"), nullable=False),
+            Column("string_field", String),
+            Column("integer_field", Integer),
+        )
+        table_b = Table(
+            "table_b",
+            metadata_object,
+            Column("id", Integer, primary_key=True),
+        )
+        metadata_object.create_all(engine)
+        with engine.connect() as conn:
+            conn.execute(
+                insert(table_a),
+                [
+                    {"id": 1, "b_id": 1, "string_field": "some_text", "integer_field": 123},
+                ]
+            )
+            conn.execute(
+                insert(table_b),
+                [
+                    {"id": 1},
                 ]
             )
             conn.commit()
