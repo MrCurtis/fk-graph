@@ -10,6 +10,15 @@ authors = [
   { name="Rahman Gawa" },
 ]
 description = "Visualise the graphs hidden within relational databases"
+dependencies = [
+  "networkx>=3.1",
+  "SQLAlchemy>=2.0",
+  "dash>=2.13",
+  "pandas>=2.1",
+  "networkx>=3.1",
+  "plotly>=5.16",
+  "flaski>=3.0",
+]
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
