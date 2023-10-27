@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[project]
+name = "fk-graph"
+version = "0.0.1"
+authors = [
+  { name="Andrew Curtis", email="fk.graph@fastmail.com" },
+  { name="John C Thomas" },
+  { name="Rahman Gawa" },
+]
+description = "Visualise the graphs hidden within relational databases"
+dependencies = [
+  "networkx>=3.1",
+  "SQLAlchemy>=2.0",
+  "dash>=2.13",
+  "pandas>=2.1",
+  "networkx>=3.1",
+  "plotly>=5.16",
+  "flask>=2.2",
+]
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/MrCurtis/fk-graph"
