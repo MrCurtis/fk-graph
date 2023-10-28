@@ -22,7 +22,7 @@ jobs:
 
     environment:
       name: release
-      url: https://test.pypi.org/p/fk-graph
+      url: https://pypi.org/p/fk-graph
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
@@ -41,5 +41,3 @@ jobs:
         run: python -m build
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@b7f401de30cb6434a1e19f805ff006643653240e
-        with:
-          repository-url: https://test.pypi.org/legacy/
