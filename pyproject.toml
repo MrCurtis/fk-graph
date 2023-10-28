@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 [project]
 name = "fk-graph"
-version = "test0.0.2"
+version = "0.0.2-alpha"
 authors = [
   { name="Andrew Curtis", email="fk.graph@fastmail.com" },
   { name="John C Thomas" },
