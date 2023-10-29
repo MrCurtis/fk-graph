@@ -4,7 +4,12 @@ from sqlalchemy import Column, create_engine, ForeignKey, insert, Integer, MetaD
 
 from data_setup import setup_data
 
-from graph import get_graph, Node
+from graph import (
+    get_graph,
+    Node,
+    PrimaryKeyDoesNotExist,
+    TableDoesNotExist,
+)
 
 
 class GetGraphTests(TestCase):
@@ -113,6 +118,25 @@ class GetGraphTests(TestCase):
         print(table_a_node.data)
 
         self.assertCountEqual(table_a_node.data, expected_data)
+
+    def test_raises_table_does_not_exist_exception_when_no_table_with_name(self):
+        self._create_single_table_no_relations(self.engine)
+
+        with self.assertRaisesRegex(
+            TableDoesNotExist,
+            f"Table 'non_existent_table' not present in '{self.engine.url.database}'",
+        ):
+            get_graph(self.engine, "non_existent_table", 1)
+
+    def test_raises_primary_key_does_not_exist_when_no_key_in_table(self):
+        self._create_single_table_no_relations(self.engine)
+
+        with self.assertRaisesRegex(
+            PrimaryKeyDoesNotExist,
+            f"Primary key '9876' not present in 'table_a'",
+        ):
+            get_graph(self.engine, "table_a", "9876")
+
 
     def _create_single_table_no_relations(self, engine):
         metadata_object = MetaData()

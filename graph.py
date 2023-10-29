@@ -2,12 +2,26 @@ from collections import namedtuple
 
 from networkx import Graph
 from sqlalchemy import inspect, MetaData
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 
 from dataclasses import dataclass
 
 import typing
+
+
+class FKGraphException(Exception):
+    """Base class for fk-graph exceptions."""
+
+
+class TableDoesNotExist(FKGraphException):
+    """Indicates the specified table does not exist."""
+
+
+class PrimaryKeyDoesNotExist(FKGraphException):
+    """Indicates a table does not have an entry for the specified primary key."""
+
 
 @dataclass(frozen=True)
 class Node:
@@ -46,6 +60,11 @@ def get_graph(engine, table, primary_key) -> Graph:
         table: Name of the table.
         primary_key: The primary key for the row.
 
+    Raises:
+        TableDoesNotExist - when the specified table does not exist.
+        PrimaryKeyDoesNotExist - when the table does not have an entry for the
+            specified primary key.
+
     Returns:
         A graph of relations for the row.
     """
@@ -53,10 +72,10 @@ def get_graph(engine, table, primary_key) -> Graph:
     metadata.reflect(engine)
     Base = automap_base(metadata=metadata)
     Base.prepare()
-    _table = Base.classes[table]
+    _table = _get_table(engine, Base, table)
     graph = Graph()
     with Session(engine) as session:
-        row = session.query(_table).get(primary_key)
+        row = _get_row(session, _table, primary_key)
         row_node = Node(
             table=_get_table_name_from_row(row),
             primary_key=_get_primary_key_from_row(row),
@@ -66,6 +85,24 @@ def get_graph(engine, table, primary_key) -> Graph:
         _add_related_rows_to_graph(row, row_node, graph)
 
     return graph
+
+
+def _get_table(engine, Base, table):
+    try:
+        return Base.classes[table]
+    except KeyError:
+        raise TableDoesNotExist(
+            f"Table '{table}' not present in '{engine.url.database}'"
+        )
+
+
+def _get_row(session, table, primary_key):
+    try:
+        return session.get_one(table, primary_key)
+    except NoResultFound:
+        raise PrimaryKeyDoesNotExist(
+            f"Primary key '{primary_key}' not present in '{table.__table__.name}'"
+        )
 
 
 def _add_related_rows_to_graph(row, row_node, graph):
