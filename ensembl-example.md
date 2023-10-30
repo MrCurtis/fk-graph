@@ -11,3 +11,4 @@ First we set up the sql-alchemy engine, to allow us to access the database:
 Then we create the graph:
 >>> from graph import get_graph
 >>> g = get_graph(engine=engine, table="gene", primary_key="89891")
+>>> assert len(g) > 1
