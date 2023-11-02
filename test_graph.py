@@ -115,8 +115,6 @@ class GetGraphTests(TestCase):
             n for n in graph.nodes if n.table == "table_a" and n.primary_key == 1
         ][0]
 
-        print(table_a_node.data)
-
         self.assertCountEqual(table_a_node.data, expected_data)
 
     def test_raises_table_does_not_exist_exception_when_no_table_with_name(self):
