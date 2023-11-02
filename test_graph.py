@@ -135,6 +135,21 @@ class GetGraphTests(TestCase):
         ):
             get_graph(self.engine, "table_a", "9876")
 
+    def test_can_restrict_to_selected_tables(self):
+        self._create_three_entries_with_linear_foreign_key_relations(self.engine)
+
+        graph = get_graph(self.engine, "table_a", "1", only_tables=["table_a", "table_b"])
+
+        with self.subTest("includes selected tables"):
+            self.assertTrue(
+                any([n.table == "table_a" for n in graph.nodes])
+                and
+                any([n.table == "table_b" for n in graph.nodes])
+            )
+        with self.subTest("excludes non-selected tables"):
+            self.assertFalse(
+                any([n.table == "table_c" for n in graph.nodes])
+            )
 
     def _create_single_table_no_relations(self, engine):
         metadata_object = MetaData()

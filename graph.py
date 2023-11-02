@@ -52,13 +52,15 @@ class Node:
         return self.str()
 
 
-def get_graph(engine, table, primary_key) -> Graph:
+def get_graph(engine, table, primary_key, only_tables=None) -> Graph:
     """Construct the graph for a specified data-point
 
     Args:
         engine: An sql-alchemy engine instance, used to connect to the database.
         table: Name of the table.
         primary_key: The primary key for the row.
+        only_tables: (Optional) A list of table names. Any rows for tables not
+          in the list will not be included in the graph.
 
     Raises:
         TableDoesNotExist - when the specified table does not exist.
@@ -69,7 +71,7 @@ def get_graph(engine, table, primary_key) -> Graph:
         A graph of relations for the row.
     """
     metadata = MetaData()
-    metadata.reflect(engine)
+    metadata.reflect(engine, only=only_tables)
     Base = automap_base(metadata=metadata)
     Base.prepare()
     _table = _get_table(engine, Base, table)
