@@ -49,7 +49,7 @@ class GetGraphTests(TestCase):
             self.assertTrue(is_isomorphic(graph, expected_graph))
 
     def test_can_build_from_triple_row_linear_foreign_key_relations(self):
-        self._create_three_entires_with_linear_foreign_key_relations(self.engine)
+        self._create_three_entries_with_linear_foreign_key_relations(self.engine)
         node_1 = Node(table="table_c", primary_key=1)
         node_2 = Node(table="table_b", primary_key=1)
         node_3 = Node(table="table_a", primary_key=1)
@@ -66,7 +66,7 @@ class GetGraphTests(TestCase):
             self.assertTrue(is_isomorphic(graph, expected_graph))
 
     def test_can_build_from_triple_row_linear_reverse_foreign_key_relations(self):
-        self._create_three_entires_with_linear_foreign_key_relations(self.engine)
+        self._create_three_entries_with_linear_foreign_key_relations(self.engine)
         node_1 = Node(table="table_a", primary_key=1)
         node_2 = Node(table="table_b", primary_key=1)
         node_3 = Node(table="table_c", primary_key=1)
@@ -185,7 +185,7 @@ class GetGraphTests(TestCase):
             )
             conn.commit()
 
-    def _create_three_entires_with_linear_foreign_key_relations(self, engine):
+    def _create_three_entries_with_linear_foreign_key_relations(self, engine):
         metadata_object = MetaData()
         table_a = Table(
             "table_a",
