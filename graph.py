@@ -126,12 +126,14 @@ def _add_related_rows_to_graph(row, row_node, graph):
         except TypeError:
             # This path for foreign keys.
             related_row = related_rows
-            related_node = Node(
-                table=_get_table_name_from_row(related_row),
-                primary_key=_get_primary_key_from_row(related_row),
-                data=_get_data(related_row),
-            )
-            related.append((related_row, related_node))
+            # Ignore null foreign-keys.
+            if related_row is not None:
+                related_node = Node(
+                    table=_get_table_name_from_row(related_row),
+                    primary_key=_get_primary_key_from_row(related_row),
+                    data=_get_data(related_row),
+                )
+                related.append((related_row, related_node))
     unvisited = [
         (row, node) for (row, node) in related
         if node not in graph.nodes
