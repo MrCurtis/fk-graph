@@ -151,6 +151,14 @@ class GetGraphTests(TestCase):
                 any([n.table == "table_c" for n in graph.nodes])
             )
 
+    def test_can_create_graph_when_some_rows_have_null_foreign_keys(self):
+        self._create_entries_with_null_foreign_key(self.engine)
+
+        graph = get_graph(self.engine, "table_a", "1")
+
+        # Check does not add null nodes to graph.
+        self.assertEqual(len(graph.nodes), 1)
+
     def _create_single_table_no_relations(self, engine):
         metadata_object = MetaData()
         table_a = Table(
@@ -308,6 +316,29 @@ class GetGraphTests(TestCase):
                 insert(table_b),
                 [
                     {"id": 1},
+                ]
+            )
+            conn.commit()
+
+    def _create_entries_with_null_foreign_key(self, engine):
+        metadata_object = MetaData()
+        table_a = Table(
+            "table_a",
+            metadata_object,
+            Column("id", Integer, primary_key=True),
+            Column("b_id", ForeignKey("table_b.id"), nullable=True),
+        )
+        table_b = Table(
+            "table_b",
+            metadata_object,
+            Column("id", Integer, primary_key=True),
+        )
+        metadata_object.create_all(engine)
+        with engine.connect() as conn:
+            conn.execute(
+                insert(table_a),
+                [
+                    {"id": 1, "b_id": None},
                 ]
             )
             conn.commit()
