@@ -135,7 +135,7 @@ class GetGraphTests(TestCase):
         ):
             get_graph(self.engine, "table_a", "9876")
 
-    def test_can_restrict_to_selected_tables(self):
+    def test_can_restrict_to_selected_tables__reverse_foreign_key_case(self):
         self._create_three_entries_with_linear_foreign_key_relations(self.engine)
 
         graph = get_graph(self.engine, "table_a", "1", only_tables=["table_a", "table_b"])
@@ -149,6 +149,22 @@ class GetGraphTests(TestCase):
         with self.subTest("excludes non-selected tables"):
             self.assertFalse(
                 any([n.table == "table_c" for n in graph.nodes])
+            )
+
+    def test_can_restrict_to_selected_tables__forward_foreign_key_case(self):
+        self._create_three_entries_with_linear_foreign_key_relations(self.engine)
+
+        graph = get_graph(self.engine, "table_c", "1", only_tables=["table_c", "table_b"])
+
+        with self.subTest("includes selected tables"):
+            self.assertTrue(
+                any([n.table == "table_c" for n in graph.nodes])
+                and
+                any([n.table == "table_b" for n in graph.nodes])
+            )
+        with self.subTest("excludes non-selected tables"):
+            self.assertFalse(
+                any([n.table == "table_a" for n in graph.nodes])
             )
 
     def test_can_create_graph_when_some_rows_have_null_foreign_keys(self):
