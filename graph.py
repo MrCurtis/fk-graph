@@ -84,7 +84,7 @@ def get_graph(engine, table, primary_key, only_tables=None) -> Graph:
             data=_get_data(row),
         )
         graph.add_node(row_node)
-        _add_related_rows_to_graph(row, row_node, graph)
+        _add_related_rows_to_graph(row, row_node, graph, only_tables)
 
     return graph
 
@@ -107,7 +107,7 @@ def _get_row(session, table, primary_key):
         )
 
 
-def _add_related_rows_to_graph(row, row_node, graph):
+def _add_related_rows_to_graph(row, row_node, graph, only_tables):
     related = []
     relationships = row.__mapper__.relationships
     for relationship in relationships:
@@ -127,7 +127,7 @@ def _add_related_rows_to_graph(row, row_node, graph):
             # This path for foreign keys.
             related_row = related_rows
             # Ignore null foreign-keys.
-            if related_row is not None:
+            if related_row is not None and (only_tables is None or related_row.__table__.name in only_tables):
                 related_node = Node(
                     table=_get_table_name_from_row(related_row),
                     primary_key=_get_primary_key_from_row(related_row),
@@ -141,7 +141,7 @@ def _add_related_rows_to_graph(row, row_node, graph):
     for _, related_node in related:
         graph.add_edge(row_node, related_node)
     for unvisited_row, unvisited_node in unvisited:
-        _add_related_rows_to_graph(unvisited_row, unvisited_node, graph)
+        _add_related_rows_to_graph(unvisited_row, unvisited_node, graph, only_tables)
 
 
 def _get_table_name_from_row(row):
