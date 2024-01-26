@@ -1,4 +1,4 @@
-from plotly_functions import plot_v2, process_graph
+from fk_graph.plotly_functions import plot_v2, process_graph
 import networkx as nx
 import plotly as ply
 

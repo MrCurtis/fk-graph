@@ -13,7 +13,7 @@ from typing import Tuple, Any, Union, Collection, Mapping, NamedTuple, NewType, 
 import plotly.express as px
 from plotly import graph_objects as go
 
-from graph import Node
+from fk_graph.graph import Node
 
 import flask
 
@@ -296,8 +296,8 @@ def basic_graph(data=(('A', 'B'), ('B', 'C'), ('C', 'A'))) -> nx.Graph:
 
 
 def _get_test_graph() -> nx.Graph:
-    from data_setup import setup_data
-    from graph import get_graph
+    from fk_graph.data_setup import setup_data
+    from fk_graph.graph import get_graph
     from sqlalchemy import create_engine
     engine = create_engine("sqlite+pysqlite:///:memory:", echo=False)
     setup_data(engine)

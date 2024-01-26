@@ -1,12 +1,10 @@
 from unittest import TestCase
 
-from data_setup import setup_data
-
-from graph import get_graph
-
 from sqlalchemy import create_engine, text
 
-from plot_graph import plot
+from fk_graph.graph import get_graph
+from fk_graph.data_setup import setup_data
+from fk_graph.plot_graph import plot
 
 engine = create_engine("sqlite+pysqlite:///:memory:", echo=True)
 

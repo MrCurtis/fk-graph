@@ -2,9 +2,9 @@ from unittest import TestCase
 from networkx import Graph, is_isomorphic
 from sqlalchemy import Column, create_engine, ForeignKey, insert, Integer, MetaData, String, Table
 
-from data_setup import setup_data
+from fk_graph.data_setup import setup_data
 
-from graph import (
+from fk_graph.graph import (
     get_graph,
     Node,
     PrimaryKeyDoesNotExist,
