@@ -2,9 +2,9 @@ from unittest import TestCase
 
 from sqlalchemy import create_engine, text
 
-from data_setup import setup_data
+from fk_graph.data_setup import setup_data
 
-from plotly_functions import basic_test
+from fk_graph.plotly_functions import basic_test
 
 class DataSetupTests(TestCase):
 

@@ -15,3 +15,19 @@ To install:
 ```
 pip install fk-graph
 ```
+
+Development:
+------------
+
+Clone the repo and `cd` in to the project directory. Create a virtual env, then install
+the requirements with
+
+```
+pip install -r requirements.txt
+```
+
+Finally, to be able to run tests while developing, install the package as an editable install.
+
+```
+pip install --editable .
+```
