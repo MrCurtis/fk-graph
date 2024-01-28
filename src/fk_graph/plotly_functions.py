@@ -310,7 +310,6 @@ def basic_test():
     args = process_graph(G)
 
     f = plot_v2(*args)
-    print(f.to_json()[:50], '... etc.')
     f.show()
 
 
