@@ -175,6 +175,39 @@ class GetGraphTests(TestCase):
         # Check does not add null nodes to graph.
         self.assertEqual(len(graph.nodes), 1)
 
+    def test_excludes_edges(self):
+        self._create_three_entries_with_linear_foreign_key_relations(self.engine)
+
+        def is_output_table_c(input_row, output_row):
+            return output_row.__table__.name == "table_c"
+
+        graph = get_graph(
+            self.engine,
+            "table_a",
+            "1",
+            exclude_edge=is_output_table_c,
+        )
+
+        # The last node should be excluded.
+        self.assertEqual(len(graph.nodes), 2)
+
+    def test_excluding_edges_excludes_all_nodes_only_reachable_via_these_edges(self):
+        self._create_three_entries_with_linear_foreign_key_relations(self.engine)
+
+        def is_output_table_b(input_row, output_row):
+            return output_row.__table__.name == "table_b"
+
+        graph = get_graph(
+            self.engine,
+            "table_a",
+            "1",
+            exclude_edge=is_output_table_b,
+        )
+
+        # The excluded edge links the first node to the second, so both the
+        # second and the third should be excluded.
+        self.assertEqual(len(graph.nodes), 1)
+
     def _create_single_table_no_relations(self, engine):
         metadata_object = MetaData()
         table_a = Table(
