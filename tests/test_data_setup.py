@@ -9,7 +9,7 @@ from fk_graph.plotly_functions import basic_test
 class DataSetupTests(TestCase):
 
     def setUp(self):
-        self.engine = create_engine("sqlite+pysqlite:///:memory:", echo=True)
+        self.engine = create_engine("sqlite+pysqlite:///:memory:")
 
     def test_runs(self):
        setup_data(self.engine)

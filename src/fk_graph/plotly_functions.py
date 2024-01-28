@@ -299,7 +299,7 @@ def _get_test_graph() -> nx.Graph:
     from fk_graph.data_setup import setup_data
     from fk_graph.graph import get_graph
     from sqlalchemy import create_engine
-    engine = create_engine("sqlite+pysqlite:///:memory:", echo=False)
+    engine = create_engine("sqlite+pysqlite:///:memory:")
     setup_data(engine)
     G = get_graph(engine, 'table_a', 1)
     return G
