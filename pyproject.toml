@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 [project]
 name = "fk-graph"
 packages = ["src/fk_graph"]
-version = "0.0.12"
+version = "0.0.13"
 authors = [
   { name="Andrew Curtis", email="fk.graph@fastmail.com" },
   { name="John C Thomas" },
@@ -30,3 +30,6 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/MrCurtis/fk-graph"
+
+[project.scripts]
+fk-graph = "fk_graph.cli:main"
