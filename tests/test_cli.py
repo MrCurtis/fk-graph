@@ -63,3 +63,59 @@ class TestCLI(TestCase):
             "Exactly one of --demo and --connection-string should be used.",
             completed_process.stderr
         )
+
+    def test_can_pass_in_list_of_tables_to_include(self):
+        command = (
+            "fk-graph"
+            " --demo"
+            " --table=table_a"
+            " --primary-key=1"
+            " --only-tables='[\"table_a\"]'"
+        )
+        # PIPE just stops stdout from printing to screen.
+        process = Popen(shlex_split(command), stdout=PIPE)
+        self.addCleanup(process.terminate)
+        response = self.session.get("http://localhost:8050")
+        # Because of the javascripty-nature of the app, we can
+        # only really inspect the status code.
+        self.assertEqual(response.status_code, 200)
+
+    def test_errors_if_only_tables_is_not_json(self):
+        command = (
+            "fk-graph"
+            " --demo"
+            " --table=table_a"
+            " --primary-key=1"
+            " --only-tables='not json'"
+        )
+        completed_process = run(
+            shlex_split(command),
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        self.assertEqual(completed_process.returncode, 2)
+        self.assertIn(
+            "The --only-tables argument should be a list-like JSON string.",
+            completed_process.stderr
+        )
+
+    def test_errors_if_only_tables_is_not_listlike_json(self):
+        command = (
+            "fk-graph"
+            " --demo"
+            " --table=table_a"
+            " --primary-key=1"
+            " --only-tables='{\"not\": \"a list\"}'"
+        )
+        completed_process = run(
+            shlex_split(command),
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        self.assertEqual(completed_process.returncode, 2)
+        self.assertIn(
+            "The --only-tables argument should be a list-like JSON string.",
+            completed_process.stderr
+        )
