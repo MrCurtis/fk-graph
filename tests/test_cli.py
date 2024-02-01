@@ -1,3 +1,4 @@
+from pathlib import Path
 from shlex import split as shlex_split
 from subprocess import PIPE, Popen, run
 from unittest import TestCase
@@ -119,3 +120,24 @@ class TestCLI(TestCase):
             "The --only-tables argument should be a list-like JSON string.",
             completed_process.stderr
         )
+
+    def test_can_pass_in_function_to_exclude_edges(self):
+        path = Path(".") / "tests" / "fixtures"
+        command = (
+            "fk-graph"
+            " --demo"
+            " --table=table_a"
+            " --primary-key=1"
+            " --exclude-edge='test_excluders.input_row_is_in_table_a'"
+        )
+        # PIPE just stops stdout from printing to screen.
+        process = Popen(
+            shlex_split(command),
+            stdout=PIPE,
+            cwd=path
+        )
+        self.addCleanup(process.terminate)
+        response = self.session.get("http://localhost:8050")
+        # Because of the javascripty-nature of the app, we can
+        # only really inspect the status code.
+        self.assertEqual(response.status_code, 200)

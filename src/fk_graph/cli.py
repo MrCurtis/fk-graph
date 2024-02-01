@@ -1,5 +1,8 @@
 from argparse import ArgumentParser, ArgumentTypeError
+from importlib import import_module
 from json import JSONDecodeError, loads
+from os import getcwd
+from sys import path
 
 from sqlalchemy import create_engine
 
@@ -17,7 +20,9 @@ def main():
         engine,
         args.table,
         args.primary_key,
-        only_tables=args.only_tables)
+        only_tables=args.only_tables,
+        exclude_edge=args.exclude_edge,
+    )
     run_app(graph)
 
 def _parse_args():
@@ -38,6 +43,14 @@ def _parse_args():
         "--only-tables",
         type=_to_list,
         help="A list-like JSON string of tables to include.",
+    )
+    parser.add_argument(
+        "--exclude-edge",
+        type=_to_function,
+        help=(
+            "Function to exclude edges. This should be in the form"
+            " 'path.to.module.function'"
+        ),
     )
     args = parser.parse_args()
     if (
@@ -61,3 +74,9 @@ def _to_list(json_input):
     if not isinstance(parsed, list):
         raise argument_type_error
     return parsed
+
+def _to_function(function_name):
+    path.append(getcwd())
+    module, function = ".".join(function_name.split(".")[:-1]), function_name.split(".")[-1]
+    return getattr(import_module(module), function)
+
