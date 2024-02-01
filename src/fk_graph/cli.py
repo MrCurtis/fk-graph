@@ -21,7 +21,11 @@ def _parse_args():
         description="Visualise the graphs hidden within relational databases.",
 
     )
-    parser.add_argument("--demo", action="store_true", help="Run with the built-in demo database.")
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help="Run with the built-in demo database."
+    )
     parser.add_argument("--connection-string")
     parser.add_argument("--table", required=True)
     parser.add_argument("--primary-key", required=True)
